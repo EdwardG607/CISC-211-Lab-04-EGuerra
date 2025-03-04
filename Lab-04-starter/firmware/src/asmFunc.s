@@ -35,7 +35,7 @@ we_have_a_problem: .word     0  /* output value */
 .type nameStr,%gnu_unique_object
     
 /*** STUDENTS: Change the next line to your name!  **/
-nameStr: .asciz "Inigo Montoya"  
+nameStr: .asciz "Edward Guerra Ramirez"  
 
 .align   /* realign so that next mem allocations are on word boundaries */
  
@@ -76,6 +76,75 @@ asmFunc:
     
     /*** STUDENTS: Place your code BELOW this line!!! **************/
 
+    /* Load memory values */
+    LDR r1, =balance         /* Loads address of balance */
+    LDR r2, [r1]             /* Loads value of balance into r2 */
+    LDR r3, =transaction     /* Loads address of transaction */
+    LDR r4, =we_have_a_problem /* Loads address of we_have_a_problem */
+    LDR r5, =eat_out         /* Loads address of eat_out */
+    LDR r6, =stay_in         /* Loads address of stay_in */
+    LDR r7, =eat_ice_cream   /* Loads address of eat_ice_cream */
+
+/* Set output variables to 0 */
+    MOV r8, #0
+    STR r8, [r3]             /* transaction = 0 */
+    STR r8, [r4]             /* we_have_a_problem = 0 */
+    STR r8, [r5]             /* eat_out = 0 */
+    STR r8, [r6]             /* stay_in = 0 */
+    STR r8, [r7]             /* eat_ice_cream = 0 */
+
+/* Store transaction value */
+    STR r0, [r3]             /* transaction = r0 */
+
+/* Check if transaction > 1000 */
+    CMP r0, #1000
+    BGT invalid_transaction
+
+/* Check if transaction < -1000 */
+    CMP r0, #-1000
+    BLT invalid_transaction
+
+/* Calculate tmpBalance = balance + transaction */
+    ADDS r8, r2, r0          /* r8 = balance + transaction */
+    BVS overflow_case        /* If overflow occurs, jump to handling */
+
+/* Store new balance */
+    STR r8, [r1]             /* balance = tmpBalance */
+
+/* Determine output flags */
+    CMP r8, #0
+    BGT set_eat_out
+    BLT set_stay_in
+
+/* If balance == 0 */
+    MOV r9, #1
+    STR r9, [r7]             /* eat_ice_cream = 1 */
+    B finalize
+
+set_eat_out:
+    MOV r9, #1
+    STR r9, [r5]             /* eat_out = 1 */
+    B finalize
+
+set_stay_in:
+    MOV r9, #1
+    STR r9, [r6]             /* stay_in = 1 */
+    B finalize
+
+overflow_case:
+    MOV r9, #1
+    STR r9, [r4]             /* we_have_a_problem = 1 */
+    MOV r8, #0
+    STR r8, [r3]             /* transaction = 0 */
+    B finalize
+
+invalid_transaction:
+    MOV r9, #1
+    STR r9, [r4]             /* we_have_a_problem = 1 */
+    B finalize
+
+finalize:
+    LDR r0, [r1]             /* r0 = balance */
     
     /*** STUDENTS: Place your code ABOVE this line!!! **************/
 
